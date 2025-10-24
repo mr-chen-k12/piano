@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Piano Note Trainer — Light & Dark</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Funnel+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f9f9f9;
+    --text: #111;
+    --card: #fff;
+    --border: #ccc;
+    --button-bg: #fff;
+    --button-text: #111;
+    --button-hover-bg: #111;
+    --button-hover-text: #fff;
+  }
+  body.dark {
+    --bg: #0f172a;
+    --text: #f8fafc;
+    --card: #1e293b;
+    --border: #334155;
+    --button-bg: #1e293b;
+    --button-text: #f8fafc;
+    --button-hover-bg: #f8fafc;
+    --button-hover-text: #000;
+  }
+  body {
+    font-family: "Funnel Sans", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    transition: background 0.4s, color 0.4s;
+  }
+  #noteCanvas {
+    background: var(--card);
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.15);
+    transition: background 0.4s;
+  }
+  button.note-btn {
+    border: 2px solid var(--text);
+    background: var(--button-bg);
+    color: var(--button-text);
+    font-weight: 700;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 1.2rem;
+    transition: all 0.15s ease;
+  }
+  button.note-btn:hover {
+    background: var(--button-hover-bg);
+    color: var(--button-hover-text);
+  }
+  .toggle-btn {
+    border: 1px solid var(--border);
+    background: var(--button-bg);
+    color: var(--button-text);
+    font-size: 0.9rem;
+    padding: 6px 10px;
+    border-radius: 6px;
+    margin: 0 4px;
+    cursor: pointer;
+  }
+  .toggle-btn:hover {
+    background: var(--button-hover-bg);
+    color: var(--button-hover-text);
+  }
+  #feedback { height: 1.5em; }
+</style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-6">
+
+<main class="rounded-2xl shadow-lg w-full max-w-lg text-center border p-6" style="background:var(--card); border-color:var(--border);">
+  <h1 class="text-3xl font-extrabold mb-1">🎼 Piano Note Trainer</h1>
+  <p class="text-gray-500 mb-3">Type or tap A–G to identify the note</p>
+
+  <div class="flex justify-center mb-3 text-lg font-semibold">
+    <span class="mr-6">Streak: <span id="streak-el" class="font-bold">0</span></span>
+    <span>Accuracy: <span id="percent-el" class="font-bold">0%</span></span>
+  </div>
+
+  <canvas id="noteCanvas" width="360" height="220"></canvas>
+
+  <p id="feedback" class="mt-3 text-xl font-bold"></p>
+
+  <div class="mt-5 flex flex-wrap justify-center gap-2">
+    <button class="note-btn">A</button>
+    <button class="note-btn">B</button>
+    <button class="note-btn">C</button>
+    <button class="note-btn">D</button>
+    <button class="note-btn">E</button>
+    <button class="note-btn">F</button>
+    <button class="note-btn">G</button>
+  </div>
+
+  <div class="mt-5 flex justify-center">
+    <button id="theme-toggle" class="toggle-btn">🌙 Dark Mode</button>
+    <button id="move-toggle" class="toggle-btn">🎯 Move X</button>
+  </div>
+
+  <p class="text-xs mt-3 text-gray-400">Range: C4 (ledger below) → A5 (ledger above)</p>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const canvas = document.getElementById('noteCanvas');
+  const ctx = canvas.getContext('2d');
+
+  const left = 60, right = canvas.width - 20;
+  const staffTop = 70, spacing = 14;
+  const lineYs = Array.from({length:5}, (_,i)=> staffTop + i*spacing);
+  const yE4 = lineYs[4];
+  const STEP = spacing/2;
+
+  const stepsFromE4 = {
+    'C4': +2, 'D4': +1,
+    'E4': 0,  'F4': -1, 'G4': -2, 'A4': -3, 'B4': -4,
+    'C5': -5, 'D5': -6, 'E5': -7, 'F5': -8, 'G5': -9, 'A5': -10
+  };
+
+  const notePool = Object.keys(stepsFromE4);
+  let currentNote = null, streak = 0, total = 0, correct = 0;
+  let moveX = false;
+
+  function drawStaff() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--text');
+    ctx.lineWidth = 2;
+    lineYs.forEach(y => {
+      ctx.beginPath();
+      ctx.moveTo(left, y);
+      ctx.lineTo(right, y);
+      ctx.stroke();
+    });
+  }
+
+  function yFromStep(step) { return yE4 + step*STEP; }
+
+  function drawLedgerIfNeeded(step, x) {
+    const color = getComputedStyle(document.body).getPropertyValue('--text');
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+
+    // Lower C4 ledger (shorter)
+    if (step >= +2) {
+      const y = yFromStep(+2);
+      ctx.beginPath();
+      ctx.moveTo(x - 30, y);
+      ctx.lineTo(x + 30, y);
+      ctx.stroke();
+    }
+
+    // Upper A5 ledger (longer)
+    if (step <= -10) {
+      const y = yFromStep(-10);
+      ctx.beginPath();
+      ctx.moveTo(x - 55, y);
+      ctx.lineTo(x + 55, y);
+      ctx.stroke();
+    }
+  }
+
+  function drawNote(noteName) {
+    const step = stepsFromE4[noteName];
+    const y = yFromStep(step);
+    const baseX = 165;
+    const x = moveX ? baseX + (Math.random() * 80 - 40) : baseX;
+
+    drawStaff();
+    drawLedgerIfNeeded(step, x);
+
+    const color = getComputedStyle(document.body).getPropertyValue('--text');
+    ctx.fillStyle = color;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+
+    // Notehead
+    ctx.beginPath();
+    ctx.ellipse(x, y, 12, 8, -0.25, 0, Math.PI*2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Stem
+    const upStem = (step >= -4);
+    const stemLen = 34;
+    ctx.beginPath();
+    if (upStem) {
+      ctx.moveTo(x+11, y-2);
+      ctx.lineTo(x+11, y-stemLen);
+    } else {
+      ctx.moveTo(x-11, y+2);
+      ctx.lineTo(x-11, y+stemLen);
+    }
+    ctx.stroke();
+  }
+
+  function pickNewNote() {
+    currentNote = notePool[Math.floor(Math.random()*notePool.length)];
+    drawNote(currentNote);
+    document.getElementById('feedback').textContent = '';
+  }
+
+  function updateHUD() {
+    document.getElementById('streak-el').textContent = streak;
+    document.getElementById('percent-el').textContent =
+      total ? Math.round((correct/total)*100)+'%' : '0%';
+  }
+
+  function handleGuess(k) {
+    if (!'ABCDEFG'.includes(k)) return;
+    total++;
+    const answer = currentNote[0];
+    const fb = document.getElementById('feedback');
+    if (k === answer) {
+      streak++; correct++;
+      fb.textContent = '✅ Correct!';
+      fb.style.color = '#22c55e';
+    } else {
+      streak = 0;
+      fb.textContent = `❌ It was ${answer}`;
+      fb.style.color = '#ef4444';
+    }
+    updateHUD();
+    setTimeout(pickNewNote, 850);
+  }
+
+  document.addEventListener('keydown', e => handleGuess(e.key.toUpperCase()));
+  document.querySelectorAll('.note-btn').forEach(btn =>
+    btn.addEventListener('click', () => handleGuess(btn.textContent))
+  );
+
+  // === Toggles ===
+  document.getElementById('theme-toggle').addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+    const btn = document.getElementById('theme-toggle');
+    if (document.body.classList.contains('dark')) {
+      btn.textContent = '☀️ Light Mode';
+    } else {
+      btn.textContent = '🌙 Dark Mode';
+    }
+    drawNote(currentNote);
+  });
+
+  document.getElementById('move-toggle').addEventListener('click', () => {
+    moveX = !moveX;
+    const btn = document.getElementById('move-toggle');
+    btn.textContent = moveX ? '🎯 Fixed X' : '🎯 Move X';
+    drawNote(currentNote);
+  });
+
+  drawStaff();
+  pickNewNote();
+  updateHUD();
+});
+</script>
+</body>
+</html>
+ 
