@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>🍁 Fall Piano Note Trainer</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Funnel+Sans:wght@400;600;800&family=Fredoka+One&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg-gradient: linear-gradient(to bottom right, #fff7e6, #ffe5b4);
@@ -76,10 +76,10 @@
   #feedback { height: 1.5em; }
 </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-6">
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
 
-<main class="rounded-2xl shadow-xl w-full max-w-lg text-center border-4 p-6" style="background:var(--card-gradient); border-color:var(--border);">
-  <h1 class="text-4xl font-extrabold mb-1">🍁 Piano Note Fun!</h1>
+<main class="rounded-2xl shadow-xl w-full max-w-3xl text-center border-4 p-6 flex flex-col items-center" style="background:var(--card-gradient); border-color:var(--border);">
+  <h1 class="text-4xl font-extrabold mb-1">🍂 Piano Note Fun!</h1>
   <p class="text-lg mb-4 opacity-90">Tap or press A–G to guess the note 🎹</p>
 
   <div class="flex justify-center mb-3 text-lg font-semibold">
@@ -87,19 +87,28 @@
     <span>⭐ Accuracy: <span id="percent-el" class="font-bold">0%</span></span>
   </div>
 
-  <canvas id="noteCanvas" width="360" height="220"></canvas>
+  <!-- Game area with side buttons -->
+  <div class="flex items-center justify-center relative">
+    <!-- Left buttons -->
+    <div class="flex flex-col gap-3 mr-4">
+      <button class="note-btn">A</button>
+      <button class="note-btn">B</button>
+      <button class="note-btn">C</button>
+    </div>
+
+    <!-- Canvas -->
+    <canvas id="noteCanvas" width="360" height="220"></canvas>
+
+    <!-- Right buttons -->
+    <div class="flex flex-col gap-3 ml-4">
+      <button class="note-btn">D</button>
+      <button class="note-btn">E</button>
+      <button class="note-btn">F</button>
+      <button class="note-btn">G</button>
+    </div>
+  </div>
 
   <p id="feedback" class="mt-3 text-xl font-bold"></p>
-
-  <div class="mt-5 flex flex-wrap justify-center gap-3">
-    <button class="note-btn">A</button>
-    <button class="note-btn">B</button>
-    <button class="note-btn">C</button>
-    <button class="note-btn">D</button>
-    <button class="note-btn">E</button>
-    <button class="note-btn">F</button>
-    <button class="note-btn">G</button>
-  </div>
 
   <div class="mt-6 flex justify-center">
     <button id="theme-toggle" class="toggle-btn">🌞 Light Theme</button>
