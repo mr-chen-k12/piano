@@ -36,8 +36,7 @@
   #noteCanvas {
     background: var(--card-gradient);
     border-radius: 16px;
-    box-shadow: 0 8px 20px rgba(107, 46, 9, 0.2);
-    transition: background 0.4s;
+    box-shadow: 0 8px 20px rgba(107, 46, 9, 0.25);
   }
 
   .note-btn {
@@ -73,21 +72,50 @@
     transform: scale(1.05);
   }
 
-  #feedback { height: 1.5em; }
+  #progress-bar {
+    position: relative;
+    width: 90%;
+    height: 10px;
+    background: linear-gradient(to right, #fcd34d, #f97316);
+    border-radius: 5px;
+    margin: 0 auto 10px auto;
+  }
+  #progress-pointer {
+    position: absolute;
+    top: -14px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 14px solid #6b3e1d;
+    transition: left 0.4s ease-out;
+    transform: translateX(-50%);
+  }
 </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4">
 
 <main class="rounded-2xl shadow-xl w-full max-w-5xl text-center border-4 p-6 flex flex-col items-center" style="background:var(--card-gradient); border-color:var(--border);">
-  <h1 class="text-4xl font-extrabold mb-1">🍂 Piano Note Fun!</h1>
-  <p class="text-lg mb-4 opacity-90">Tap or press A–G to guess the note 🎹</p>
 
-  <div class="flex justify-center mb-3 text-lg font-semibold">
-    <span class="mr-6">🔥 Streak: <span id="streak-el" class="font-bold">0</span></span>
-    <span>⭐ Accuracy: <span id="percent-el" class="font-bold">0%</span></span>
+  <h1 class="text-4xl font-extrabold mb-1">🍂 Piano Note Fun!</h1>
+  <p class="text-lg mb-3 opacity-90">Tap or press A–G to guess the note 🎹</p>
+
+  <!-- Score bar -->
+  <div class="w-full mb-4">
+    <div id="progress-bar">
+      <div id="progress-pointer"></div>
+    </div>
+    <div class="flex justify-between text-sm font-bold opacity-70">
+      <span>Nice Try</span><span>Good Work</span><span>Pro!</span>
+    </div>
   </div>
 
-  <!-- Wider layout for thumb reach -->
+  <div class="flex justify-center mb-3 text-lg font-semibold">
+    <span class="mr-6">🔥 Streak: <span id="streak-el">0</span></span>
+    <span>⭐ Accuracy: <span id="percent-el">0%</span></span>
+  </div>
+
+  <!-- Game area -->
   <div class="flex items-center justify-between w-full px-4">
     <!-- Left buttons -->
     <div class="flex flex-col gap-4">
@@ -125,19 +153,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('noteCanvas');
   const ctx = canvas.getContext('2d');
   const left = 80, right = canvas.width - 40;
-  const staffTop = 100, spacing = 22; // wider spacing for easier reading
+  const staffTop = 100, spacing = 22;
   const lineYs = Array.from({length:5}, (_,i)=> staffTop + i*spacing);
   const yE4 = lineYs[4];
   const STEP = spacing/2;
 
-  const stepsFromE4 = {
-    'C4': +2, 'D4': +1,
-    'E4': 0,  'F4': -1, 'G4': -2, 'A4': -3, 'B4': -4,
-    'C5': -5, 'D5': -6, 'E5': -7, 'F5': -8, 'G5': -9, 'A5': -10
-  };
-
-  const notePool = Object.keys(stepsFromE4);
-  let currentNote = null, streak = 0, total = 0, correct = 0;
+  const allNotes = ['C4','D4','E4','F4','G4','A4','B4','C5','D5','E5','F5','G5','A5'];
+  let currentNote = 'E4', currentIndex = allNotes.indexOf(currentNote);
+  let streak = 0, total = 0, correct = 0, score = 0;
   let moveX = false;
 
   function drawStaff() {
@@ -154,28 +177,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function yFromStep(step) { return yE4 + step*STEP; }
 
+  function stepFromNote(note) {
+    const map = {
+      'C4': +2,'D4': +1,'E4': 0,'F4': -1,'G4': -2,'A4': -3,'B4': -4,
+      'C5': -5,'D5': -6,'E5': -7,'F5': -8,'G5': -9,'A5': -10
+    };
+    return map[note];
+  }
+
   function drawLedgerIfNeeded(step, x) {
     const color = getComputedStyle(document.body).getPropertyValue('--text');
     ctx.strokeStyle = color;
     ctx.lineWidth = 3;
-    if (step >= +2) { // Low C4
-      const y = yFromStep(+2);
-      ctx.beginPath();
-      ctx.moveTo(x - 30, y);
-      ctx.lineTo(x + 30, y);
-      ctx.stroke();
-    }
-    if (step <= -10) { // High A5
-      const y = yFromStep(-10);
-      ctx.beginPath();
-      ctx.moveTo(x - 60, y);
-      ctx.lineTo(x + 60, y);
-      ctx.stroke();
-    }
+    if (step >= +2) { const y = yFromStep(+2); ctx.beginPath(); ctx.moveTo(x - 30, y); ctx.lineTo(x + 30, y); ctx.stroke(); }
+    if (step <= -10){ const y = yFromStep(-10); ctx.beginPath(); ctx.moveTo(x - 60, y); ctx.lineTo(x + 60, y); ctx.stroke(); }
   }
 
-  function drawNote(noteName) {
-    const step = stepsFromE4[noteName];
+  function drawNote(note) {
+    const step = stepFromNote(note);
     const y = yFromStep(step);
     const baseX = canvas.width / 2;
     const x = moveX ? baseX + (Math.random() * 100 - 50) : baseX;
@@ -188,36 +207,41 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.strokeStyle = color;
     ctx.lineWidth = 3;
 
-    // larger notehead
     ctx.beginPath();
     ctx.ellipse(x, y, 16, 12, -0.25, 0, Math.PI*2);
     ctx.fill();
     ctx.stroke();
 
-    // longer stem
     const upStem = (step >= -4);
     const stemLen = 48;
     ctx.beginPath();
-    if (upStem) {
-      ctx.moveTo(x+14, y-2);
-      ctx.lineTo(x+14, y-stemLen);
-    } else {
-      ctx.moveTo(x-14, y+2);
-      ctx.lineTo(x-14, y+stemLen);
-    }
+    if (upStem) { ctx.moveTo(x+14, y-2); ctx.lineTo(x+14, y-stemLen); }
+    else { ctx.moveTo(x-14, y+2); ctx.lineTo(x-14, y+stemLen); }
     ctx.stroke();
   }
 
   function pickNewNote() {
-    currentNote = notePool[Math.floor(Math.random()*notePool.length)];
+    const stepChange = (Math.random() > 0.5 ? 1 : -1);
+    // Adaptive difficulty: move farther away if correct streak is growing
+    const moveDistance = Math.min(3, Math.floor(streak / 3) + 1);
+    const nextIndex = Math.max(0, Math.min(allNotes.length-1, currentIndex + stepChange * moveDistance));
+    currentIndex = nextIndex;
+    currentNote = allNotes[currentIndex];
     drawNote(currentNote);
     document.getElementById('feedback').textContent = '';
   }
 
+  function updateProgressBar() {
+    const progress = Math.min(score, 50);
+    const pct = (progress / 50) * 100;
+    document.getElementById('progress-pointer').style.left = `${pct}%`;
+  }
+
   function updateHUD() {
     document.getElementById('streak-el').textContent = streak;
-    document.getElementById('percent-el').textContent =
-      total ? Math.round((correct/total)*100)+'%' : '0%';
+    const pct = total ? Math.round((correct/total)*100) : 0;
+    document.getElementById('percent-el').textContent = pct + '%';
+    updateProgressBar();
   }
 
   function handleGuess(k) {
@@ -226,13 +250,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const answer = currentNote[0];
     const fb = document.getElementById('feedback');
     if (k === answer) {
-      streak++; correct++;
+      streak++; correct++; score = Math.min(50, score + 1);
       fb.textContent = '🎉 Yay! Correct!';
       fb.style.color = '#ff7f00';
     } else {
       streak = 0;
       fb.textContent = `😅 It was ${answer}`;
       fb.style.color = '#b91c1c';
+      score = Math.max(0, score - 1);
     }
     updateHUD();
     setTimeout(pickNewNote, 900);
@@ -258,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   drawStaff();
-  pickNewNote();
+  drawNote(currentNote);
   updateHUD();
 });
 </script>
