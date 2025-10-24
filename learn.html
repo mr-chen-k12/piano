@@ -87,7 +87,7 @@
     <span>⭐ Accuracy: <span id="percent-el" class="font-bold">0%</span></span>
   </div>
 
-  <!-- Wider game area for iPad thumb reach -->
+  <!-- Wider layout for thumb reach -->
   <div class="flex items-center justify-between w-full px-4">
     <!-- Left buttons -->
     <div class="flex flex-col gap-4">
@@ -96,9 +96,9 @@
       <button class="note-btn">C</button>
     </div>
 
-    <!-- Canvas (center widened) -->
+    <!-- Canvas -->
     <div class="flex justify-center">
-      <canvas id="noteCanvas" width="500" height="250"></canvas>
+      <canvas id="noteCanvas" width="500" height="280"></canvas>
     </div>
 
     <!-- Right buttons -->
@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('noteCanvas');
   const ctx = canvas.getContext('2d');
   const left = 80, right = canvas.width - 40;
-  const staffTop = 90, spacing = 16;
+  const staffTop = 100, spacing = 22; // wider spacing for easier reading
   const lineYs = Array.from({length:5}, (_,i)=> staffTop + i*spacing);
   const yE4 = lineYs[4];
   const STEP = spacing/2;
@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function drawStaff() {
     ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--text');
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 3;
     lineYs.forEach(y => {
       ctx.beginPath();
       ctx.moveTo(left, y);
@@ -157,19 +157,19 @@ document.addEventListener('DOMContentLoaded', () => {
   function drawLedgerIfNeeded(step, x) {
     const color = getComputedStyle(document.body).getPropertyValue('--text');
     ctx.strokeStyle = color;
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 3;
     if (step >= +2) { // Low C4
       const y = yFromStep(+2);
       ctx.beginPath();
-      ctx.moveTo(x - 25, y);
-      ctx.lineTo(x + 25, y);
+      ctx.moveTo(x - 30, y);
+      ctx.lineTo(x + 30, y);
       ctx.stroke();
     }
     if (step <= -10) { // High A5
       const y = yFromStep(-10);
       ctx.beginPath();
-      ctx.moveTo(x - 50, y);
-      ctx.lineTo(x + 50, y);
+      ctx.moveTo(x - 60, y);
+      ctx.lineTo(x + 60, y);
       ctx.stroke();
     }
   }
@@ -186,22 +186,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const color = getComputedStyle(document.body).getPropertyValue('--text');
     ctx.fillStyle = color;
     ctx.strokeStyle = color;
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 3;
 
+    // larger notehead
     ctx.beginPath();
-    ctx.ellipse(x, y, 12, 8, -0.25, 0, Math.PI*2);
+    ctx.ellipse(x, y, 16, 12, -0.25, 0, Math.PI*2);
     ctx.fill();
     ctx.stroke();
 
+    // longer stem
     const upStem = (step >= -4);
-    const stemLen = 34;
+    const stemLen = 48;
     ctx.beginPath();
     if (upStem) {
-      ctx.moveTo(x+11, y-2);
-      ctx.lineTo(x+11, y-stemLen);
+      ctx.moveTo(x+14, y-2);
+      ctx.lineTo(x+14, y-stemLen);
     } else {
-      ctx.moveTo(x-11, y+2);
-      ctx.lineTo(x-11, y+stemLen);
+      ctx.moveTo(x-14, y+2);
+      ctx.lineTo(x-14, y+stemLen);
     }
     ctx.stroke();
   }
