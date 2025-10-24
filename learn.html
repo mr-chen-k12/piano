@@ -3,89 +3,95 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Piano Note Trainer — Light & Dark</title>
+<title>🍁 Fall Piano Note Trainer</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Funnel+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Funnel+Sans:wght@400;600;800&family=Fredoka+One&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f9f9f9;
-    --text: #111;
-    --card: #fff;
-    --border: #ccc;
-    --button-bg: #fff;
-    --button-text: #111;
-    --button-hover-bg: #111;
-    --button-hover-text: #fff;
+    --bg-gradient: linear-gradient(to bottom right, #fff7e6, #ffe5b4);
+    --card-gradient: linear-gradient(to bottom right, #fff2cc, #ffd59e);
+    --text: #6b3e1d;
+    --button-bg: #ffb347;
+    --button-hover: #ffcc33;
+    --button-text: #5b2c00;
+    --border: #d69e2e;
   }
-  body.dark {
-    --bg: #0f172a;
-    --text: #f8fafc;
-    --card: #1e293b;
-    --border: #334155;
-    --button-bg: #1e293b;
-    --button-text: #f8fafc;
-    --button-hover-bg: #f8fafc;
-    --button-hover-text: #000;
+  body.fall-dark {
+    --bg-gradient: linear-gradient(to bottom right, #3a1f04, #5b3a0c);
+    --card-gradient: linear-gradient(to bottom right, #5b3a0c, #7a5112);
+    --text: #ffe9a1;
+    --button-bg: #d97706;
+    --button-hover: #fbbf24;
+    --button-text: #fff8dc;
+    --border: #fbbf24;
   }
+
   body {
-    font-family: "Funnel Sans", sans-serif;
-    background: var(--bg);
+    font-family: "Fredoka One", cursive;
+    background: var(--bg-gradient);
     color: var(--text);
-    transition: background 0.4s, color 0.4s;
+    transition: all 0.4s ease;
   }
+
   #noteCanvas {
-    background: var(--card);
-    border-radius: 12px;
-    box-shadow: 0 6px 18px rgba(0,0,0,.15);
+    background: var(--card-gradient);
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(107, 46, 9, 0.2);
     transition: background 0.4s;
   }
-  button.note-btn {
-    border: 2px solid var(--text);
+
+  .note-btn {
+    border: 3px solid var(--border);
     background: var(--button-bg);
     color: var(--button-text);
     font-weight: 700;
-    border-radius: 10px;
-    padding: 10px 16px;
-    font-size: 1.2rem;
+    border-radius: 50%;
+    width: 55px;
+    height: 55px;
+    font-size: 1.3rem;
     transition: all 0.15s ease;
+    box-shadow: 2px 3px 6px rgba(0,0,0,0.15);
   }
-  button.note-btn:hover {
-    background: var(--button-hover-bg);
-    color: var(--button-hover-text);
+  .note-btn:hover {
+    background: var(--button-hover);
+    transform: scale(1.05);
   }
+
   .toggle-btn {
-    border: 1px solid var(--border);
+    border: 2px solid var(--border);
     background: var(--button-bg);
     color: var(--button-text);
     font-size: 0.9rem;
-    padding: 6px 10px;
-    border-radius: 6px;
-    margin: 0 4px;
-    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 8px;
+    margin: 0 6px;
+    transition: all 0.2s;
+    box-shadow: 2px 3px 6px rgba(0,0,0,0.1);
   }
   .toggle-btn:hover {
-    background: var(--button-hover-bg);
-    color: var(--button-hover-text);
+    background: var(--button-hover);
+    transform: scale(1.05);
   }
+
   #feedback { height: 1.5em; }
 </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-6">
 
-<main class="rounded-2xl shadow-lg w-full max-w-lg text-center border p-6" style="background:var(--card); border-color:var(--border);">
-  <h1 class="text-3xl font-extrabold mb-1">🎼 Piano Note Trainer</h1>
-  <p class="text-gray-500 mb-3">Type or tap A–G to identify the note</p>
+<main class="rounded-2xl shadow-xl w-full max-w-lg text-center border-4 p-6" style="background:var(--card-gradient); border-color:var(--border);">
+  <h1 class="text-4xl font-extrabold mb-1">🍁 Piano Note Fun!</h1>
+  <p class="text-lg mb-4 opacity-90">Tap or press A–G to guess the note 🎹</p>
 
   <div class="flex justify-center mb-3 text-lg font-semibold">
-    <span class="mr-6">Streak: <span id="streak-el" class="font-bold">0</span></span>
-    <span>Accuracy: <span id="percent-el" class="font-bold">0%</span></span>
+    <span class="mr-6">🔥 Streak: <span id="streak-el" class="font-bold">0</span></span>
+    <span>⭐ Accuracy: <span id="percent-el" class="font-bold">0%</span></span>
   </div>
 
   <canvas id="noteCanvas" width="360" height="220"></canvas>
 
   <p id="feedback" class="mt-3 text-xl font-bold"></p>
 
-  <div class="mt-5 flex flex-wrap justify-center gap-2">
+  <div class="mt-5 flex flex-wrap justify-center gap-3">
     <button class="note-btn">A</button>
     <button class="note-btn">B</button>
     <button class="note-btn">C</button>
@@ -95,19 +101,18 @@
     <button class="note-btn">G</button>
   </div>
 
-  <div class="mt-5 flex justify-center">
-    <button id="theme-toggle" class="toggle-btn">🌙 Dark Mode</button>
-    <button id="move-toggle" class="toggle-btn">🎯 Move X</button>
+  <div class="mt-6 flex justify-center">
+    <button id="theme-toggle" class="toggle-btn">🌞 Light Theme</button>
+    <button id="move-toggle" class="toggle-btn">🎯 Move Notes</button>
   </div>
 
-  <p class="text-xs mt-3 text-gray-400">Range: C4 (ledger below) → A5 (ledger above)</p>
+  <p class="text-xs mt-3 opacity-80">Range: C4 (below) → A5 (above)</p>
 </main>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('noteCanvas');
   const ctx = canvas.getContext('2d');
-
   const left = 60, right = canvas.width - 20;
   const staffTop = 70, spacing = 14;
   const lineYs = Array.from({length:5}, (_,i)=> staffTop + i*spacing);
@@ -127,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function drawStaff() {
     ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--text');
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.5;
     lineYs.forEach(y => {
       ctx.beginPath();
       ctx.moveTo(left, y);
@@ -141,23 +146,19 @@ document.addEventListener('DOMContentLoaded', () => {
   function drawLedgerIfNeeded(step, x) {
     const color = getComputedStyle(document.body).getPropertyValue('--text');
     ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-
-    // Lower C4 ledger (shorter)
-    if (step >= +2) {
+    ctx.lineWidth = 2.5;
+    if (step >= +2) { // Low C4
       const y = yFromStep(+2);
       ctx.beginPath();
-      ctx.moveTo(x - 30, y);
-      ctx.lineTo(x + 30, y);
+      ctx.moveTo(x - 25, y);
+      ctx.lineTo(x + 25, y);
       ctx.stroke();
     }
-
-    // Upper A5 ledger (longer)
-    if (step <= -10) {
+    if (step <= -10) { // High A5
       const y = yFromStep(-10);
       ctx.beginPath();
-      ctx.moveTo(x - 55, y);
-      ctx.lineTo(x + 55, y);
+      ctx.moveTo(x - 50, y);
+      ctx.lineTo(x + 50, y);
       ctx.stroke();
     }
   }
@@ -174,15 +175,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const color = getComputedStyle(document.body).getPropertyValue('--text');
     ctx.fillStyle = color;
     ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.5;
 
-    // Notehead
     ctx.beginPath();
     ctx.ellipse(x, y, 12, 8, -0.25, 0, Math.PI*2);
     ctx.fill();
     ctx.stroke();
 
-    // Stem
     const upStem = (step >= -4);
     const stemLen = 34;
     ctx.beginPath();
@@ -215,15 +214,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const fb = document.getElementById('feedback');
     if (k === answer) {
       streak++; correct++;
-      fb.textContent = '✅ Correct!';
-      fb.style.color = '#22c55e';
+      fb.textContent = '🎉 Yay! Correct!';
+      fb.style.color = '#ff7f00';
     } else {
       streak = 0;
-      fb.textContent = `❌ It was ${answer}`;
-      fb.style.color = '#ef4444';
+      fb.textContent = `😅 It was ${answer}`;
+      fb.style.color = '#b91c1c';
     }
     updateHUD();
-    setTimeout(pickNewNote, 850);
+    setTimeout(pickNewNote, 900);
   }
 
   document.addEventListener('keydown', e => handleGuess(e.key.toUpperCase()));
@@ -231,22 +230,17 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => handleGuess(btn.textContent))
   );
 
-  // === Toggles ===
   document.getElementById('theme-toggle').addEventListener('click', () => {
-    document.body.classList.toggle('dark');
+    document.body.classList.toggle('fall-dark');
     const btn = document.getElementById('theme-toggle');
-    if (document.body.classList.contains('dark')) {
-      btn.textContent = '☀️ Light Mode';
-    } else {
-      btn.textContent = '🌙 Dark Mode';
-    }
+    btn.textContent = document.body.classList.contains('fall-dark') ? '☀️ Light Theme' : '🌙 Cozy Dark';
     drawNote(currentNote);
   });
 
   document.getElementById('move-toggle').addEventListener('click', () => {
     moveX = !moveX;
     const btn = document.getElementById('move-toggle');
-    btn.textContent = moveX ? '🎯 Fixed X' : '🎯 Move X';
+    btn.textContent = moveX ? '🎯 Fixed Notes' : '🎯 Move Notes';
     drawNote(currentNote);
   });
 
@@ -257,4 +251,3 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
- 
