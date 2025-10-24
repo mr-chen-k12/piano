@@ -6,6 +6,7 @@
 <title>🍁 Fall Piano Note Trainer</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+
 <style>
   :root {
     --bg-gradient: linear-gradient(to bottom right, #fff7e6, #ffe5b4);
@@ -31,12 +32,14 @@
     background: var(--bg-gradient);
     color: var(--text);
     transition: all 0.4s ease;
+    overflow-x: hidden;
   }
 
   #noteCanvas {
     background: var(--card-gradient);
     border-radius: 16px;
     box-shadow: 0 8px 20px rgba(107, 46, 9, 0.25);
+    transition: all 0.4s;
   }
 
   .note-btn {
@@ -45,12 +48,10 @@
     color: var(--button-text);
     font-weight: 700;
     border-radius: 50%;
-    width: 70px;
-    height: 70px;
-    font-size: 1.5rem;
     transition: all 0.15s ease;
     box-shadow: 3px 5px 8px rgba(0,0,0,0.15);
   }
+
   .note-btn:hover {
     background: var(--button-hover);
     transform: scale(1.05);
@@ -67,6 +68,7 @@
     transition: all 0.2s;
     box-shadow: 2px 3px 6px rgba(0,0,0,0.1);
   }
+
   .toggle-btn:hover {
     background: var(--button-hover);
     transform: scale(1.05);
@@ -80,6 +82,7 @@
     border-radius: 5px;
     margin: 0 auto 10px auto;
   }
+
   #progress-pointer {
     position: absolute;
     top: -14px;
@@ -92,7 +95,6 @@
     transform: translateX(-50%);
   }
 
-  /* Keep fixed height with placeholder text to prevent iPad reflow */
   #feedback {
     min-height: 1.8em;
     line-height: 1.8em;
@@ -100,11 +102,53 @@
     font-weight: bold;
     transition: opacity 0.3s ease;
   }
+
+  /* ======== Responsive Design ======== */
+  @media (max-width: 768px) {
+    main {
+      padding: 10px !important;
+    }
+
+    #noteCanvas {
+      width: 300px !important;
+      height: 180px !important;
+    }
+
+    .note-btn {
+      width: 50px !important;
+      height: 50px !important;
+      font-size: 1.1rem !important;
+    }
+
+    h1 {
+      font-size: 1.8rem !important;
+    }
+
+    p, span, button, #feedback {
+      font-size: 1rem !important;
+    }
+
+    .flex.items-center.justify-between.w-full.px-4 {
+      flex-direction: row;
+      justify-content: space-around;
+      gap: 10px;
+    }
+
+    .flex.flex-col.gap-4 {
+      gap: 10px !important;
+    }
+
+    #progress-bar {
+      width: 95%;
+    }
+  }
 </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-4">
 
-<main class="rounded-2xl shadow-xl w-full max-w-5xl text-center border-4 p-6 flex flex-col items-center" style="background:var(--card-gradient); border-color:var(--border);">
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+<main class="rounded-2xl shadow-xl w-full max-w-5xl text-center border-4 p-6 flex flex-col items-center"
+      style="background:var(--card-gradient); border-color:var(--border);">
+
   <h1 class="text-4xl font-extrabold mb-1">🍂 Piano Note Fun!</h1>
   <p class="text-lg mb-3 opacity-90">Tap or press A–G to guess the note 🎹</p>
 
@@ -143,7 +187,6 @@
     </div>
   </div>
 
-  <!-- Placeholder ensures stable height -->
   <p id="feedback" class="mt-3 opacity-80">...</p>
 
   <div class="mt-6 flex justify-center flex-wrap gap-4">
@@ -159,8 +202,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('noteCanvas');
   const ctx = canvas.getContext('2d');
   const feedback = document.getElementById('feedback');
-  const left = 80, right = canvas.width - 40;
-  const staffTop = 100, spacing = 22;
+
+  // Detect mobile to adjust internal spacing
+  const isMobile = window.innerWidth < 768;
+  const left = isMobile ? 50 : 80;
+  const right = isMobile ? canvas.width - 30 : canvas.width - 40;
+  const staffTop = isMobile ? 60 : 100;
+  const spacing = isMobile ? 14 : 22;
   const lineYs = Array.from({length:5}, (_,i)=> staffTop + i*spacing);
   const yE4 = lineYs[4];
   const STEP = spacing/2;
@@ -173,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function drawStaff() {
     ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--text');
-    ctx.lineWidth = 3;
+    ctx.lineWidth = isMobile ? 2 : 3;
     lineYs.forEach(y => {
       ctx.beginPath();
       ctx.moveTo(left, y);
@@ -195,16 +243,16 @@ document.addEventListener('DOMContentLoaded', () => {
   function drawLedgerIfNeeded(step, x) {
     const color = getComputedStyle(document.body).getPropertyValue('--text');
     ctx.strokeStyle = color;
-    ctx.lineWidth = 3;
-    if (step >= +2) { const y = yFromStep(+2); ctx.beginPath(); ctx.moveTo(x - 30, y); ctx.lineTo(x + 30, y); ctx.stroke(); }
-    if (step <= -10){ const y = yFromStep(-10); ctx.beginPath(); ctx.moveTo(x - 60, y); ctx.lineTo(x + 60, y); ctx.stroke(); }
+    ctx.lineWidth = isMobile ? 2 : 3;
+    if (step >= +2) { const y = yFromStep(+2); ctx.beginPath(); ctx.moveTo(x - 20, y); ctx.lineTo(x + 20, y); ctx.stroke(); }
+    if (step <= -10){ const y = yFromStep(-10); ctx.beginPath(); ctx.moveTo(x - 40, y); ctx.lineTo(x + 40, y); ctx.stroke(); }
   }
 
   function drawNote(note) {
     const step = stepFromNote(note);
     const y = yFromStep(step);
     const baseX = canvas.width / 2;
-    const x = moveX ? baseX + (Math.random() * 100 - 50) : baseX;
+    const x = moveX ? baseX + (Math.random() * (isMobile ? 60 : 100) - (isMobile ? 30 : 50)) : baseX;
 
     drawStaff();
     drawLedgerIfNeeded(step, x);
@@ -212,18 +260,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const color = getComputedStyle(document.body).getPropertyValue('--text');
     ctx.fillStyle = color;
     ctx.strokeStyle = color;
-    ctx.lineWidth = 3;
+    ctx.lineWidth = isMobile ? 2 : 3;
 
+    const noteW = isMobile ? 10 : 16;
+    const noteH = isMobile ? 8 : 12;
     ctx.beginPath();
-    ctx.ellipse(x, y, 16, 12, -0.25, 0, Math.PI*2);
+    ctx.ellipse(x, y, noteW, noteH, -0.25, 0, Math.PI*2);
     ctx.fill();
     ctx.stroke();
 
     const upStem = (step >= -4);
-    const stemLen = 48;
+    const stemLen = isMobile ? 30 : 48;
     ctx.beginPath();
-    if (upStem) { ctx.moveTo(x+14, y-2); ctx.lineTo(x+14, y-stemLen); }
-    else { ctx.moveTo(x-14, y+2); ctx.lineTo(x-14, y+stemLen); }
+    if (upStem) { ctx.moveTo(x+noteW-2, y-2); ctx.lineTo(x+noteW-2, y-stemLen); }
+    else { ctx.moveTo(x-noteW+2, y+2); ctx.lineTo(x-noteW+2, y+stemLen); }
     ctx.stroke();
   }
 
